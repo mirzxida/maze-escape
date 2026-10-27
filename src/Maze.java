@@ -1,3 +1,5 @@
+import java.util.*;
+
 public class Maze {
 
     /**
@@ -18,7 +20,7 @@ public class Maze {
             }
         }
 
-        return java.util.Arrays.copyOf(broken, count);
+        return Arrays.copyOf(broken, count);
     }
 
     /**
@@ -26,8 +28,25 @@ public class Maze {
      * Returns the indexes of the broken walls.
      */
     public static int[] cheapestMaze(Input.Walls w) {
-        // TODO
-        return new int[0];
+        int numCells = w.rows() * w.cols();
+        DisjointSet dsu = new DisjointSet(numCells);
+
+        Integer[] walls = new Integer[w.a().length];
+        for (int i = 0; i < walls.length; i++) walls[i] = i;
+
+        Arrays.sort(walls, Comparator.comparingInt(i -> w.cost()[i]));
+
+        int[] broken = new int[numCells - 1];
+        int count = 0;
+
+        for (int idx : walls) {
+            if (dsu.union(w.a()[idx], w.b()[idx])) {
+                broken[count] = idx;
+                count++;
+            }
+        }
+
+        return Arrays.copyOf(broken, count);
     }
 
     /**
@@ -35,7 +54,42 @@ public class Maze {
      * It must be equal to the total cost of cheapestMaze.
      */
     public static long primCost(Input.Walls w) {
-        // TODO
-        return 0;
+        int numCells = w.rows() * w.cols();
+
+        List<int[]>[] adj = new ArrayList[numCells];
+        for (int i = 0; i < numCells; i++) adj[i] = new ArrayList<>();
+
+        for (int i = 0; i < w.a().length; i++) {
+            adj[w.a()[i]].add(new int[]{w.cost()[i], w.b()[i]});
+            adj[w.b()[i]].add(new int[]{w.cost()[i], w.a()[i]});
+        }
+
+        boolean[] visited = new boolean[numCells];
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(edge -> edge[0]));
+        long totalCost = 0;
+
+        visited[0] = true;
+        pq.addAll(adj[0]);
+
+        int edgesUsed = 0;
+        while (!pq.isEmpty() && edgesUsed < numCells - 1) {
+            int[] current = pq.poll();
+            int cost = current[0];
+            int nextCell = current[1];
+
+            if (visited[nextCell]) continue;
+
+            visited[nextCell] = true;
+            totalCost += cost;
+            edgesUsed++;
+
+            for (int[] edge : adj[nextCell]) {
+                if (!visited[edge[1]]) {
+                    pq.add(edge);
+                }
+            }
+        }
+
+        return totalCost;
     }
 }
