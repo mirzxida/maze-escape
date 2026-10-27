@@ -1,8 +1,3 @@
-/**
- * Missions 1 and 2. Building the maze out of the walls.
- * A wall k joins the cells w.a()[k] and w.b()[k] and costs w.cost()[k]. Indexes start from 0,
- * the line number in walls.txt is the index + 1. The cells are connected by DisjointSet.
- */
 public class Maze {
 
     /**
@@ -10,8 +5,20 @@ public class Maze {
      * Returns the indexes of the broken walls, in the order of breaking.
      */
     public static int[] breakWalls(Input.Walls w) {
-        // TODO
-        return new int[0];
+        int numCells = w.rows() * w.cols();
+        DisjointSet dsu = new DisjointSet(numCells);
+
+        int[] broken = new int[numCells - 1];
+        int count = 0;
+
+        for (int k = 0; k < w.a().length; k++) {
+            if (dsu.union(w.a()[k], w.b()[k])) {
+                broken[count] = k;
+                count++;
+            }
+        }
+
+        return java.util.Arrays.copyOf(broken, count);
     }
 
     /**
